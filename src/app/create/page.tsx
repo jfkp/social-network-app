@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import ImageUpload from "@/components/ui/ImageUpload";
@@ -14,10 +14,11 @@ export default function CreatePost() {
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (!user) {
-    router.push("/");
-    return null;
-  }
+  useEffect(() => {
+    if (!user) {
+      router.push("/");
+    }
+  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +44,8 @@ export default function CreatePost() {
       setIsSubmitting(false);
     }
   };
+
+  if (!user) return null;
 
   return (
     <div className="p-4">

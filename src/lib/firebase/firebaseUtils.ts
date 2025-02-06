@@ -39,8 +39,24 @@ export const signInWithGoogle = async () => {
 };
 
 // Posts
-export const createPost = async (post: Omit<Post, 'id'>) => {
-  return addDoc(collection(db, "posts"), post);
+export const createPost = async (post: Omit<Post, 'id' | 'imageUrl'>, imageFile: File | null) => {
+  try {
+    let imageUrl = "";
+    if (imageFile) {
+      const path = `posts/${post.userId}/${Date.now()}-${imageFile.name}`;
+      imageUrl = await uploadImage(imageFile, path);
+    }
+
+    const postRef = await addDoc(collection(db, "posts"), {
+      ...post,
+      imageUrl,
+    });
+
+    return postRef;
+  } catch (error) {
+    console.error("Error creating post:", error);
+    throw error;
+  }
 };
 
 export const getFeedPosts = async () => {
@@ -95,8 +111,8 @@ export const getUserProfile = async (userId: string) => {
 // File Upload
 export const uploadImage = async (file: File, path: string) => {
   const storageRef = ref(storage, path);
-  await uploadBytes(storageRef, file);
-  return getDownloadURL(storageRef);
+  const snapshot = await uploadBytes(storageRef, file);
+  return getDownloadURL(snapshot.ref);
 };
 
 // Profile functions

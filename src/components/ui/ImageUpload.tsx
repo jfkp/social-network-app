@@ -1,88 +1,96 @@
 "use client";
 
-import { ChangeEvent, useState } from 'react';
-import Image from 'next/image';
-import { Upload, X } from 'lucide-react';
+import { useState, useRef } from "react";
+import { X } from "lucide-react";
+import Image from "next/image";
 
 interface ImageUploadProps {
-  onImageSelect: (file: File) => void;
-  onImageClear: () => void;
-  previewUrl?: string;
+  onFileSelect: (file: File | null) => void;
+  previewUrl: string;
+  setPreviewUrl: (url: string) => void;
 }
 
-export default function ImageUpload({ onImageSelect, onImageClear, previewUrl }: ImageUploadProps) {
-  const [dragActive, setDragActive] = useState(false);
+export default function ImageUpload({ onFileSelect, previewUrl, setPreviewUrl }: ImageUploadProps) {
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleDrag = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      onImageSelect(e.dataTransfer.files[0]);
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith("image/")) {
+      onFileSelect(file);
+      setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    if (e.target.files && e.target.files[0]) {
-      onImageSelect(e.target.files[0]);
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onFileSelect(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const handleClear = () => {
+    onFileSelect(null);
+    setPreviewUrl("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
   return (
-    <div className="w-full">
+    <div>
       {previewUrl ? (
-        <div className="relative aspect-square w-full">
-          <Image
-            src={previewUrl}
-            alt="Upload preview"
-            fill
-            className="object-cover rounded-lg"
-          />
+        <div className="relative">
+          <div className="relative aspect-video w-full">
+            <Image
+              src={previewUrl}
+              alt="Preview"
+              fill
+              className="object-cover rounded-lg"
+            />
+          </div>
           <button
-            onClick={onImageClear}
-            className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-lg"
+            onClick={handleClear}
+            className="absolute top-2 right-2 p-1 bg-black/50 rounded-full text-white hover:bg-black/70"
+            type="button"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
       ) : (
         <div
-          onDragEnter={handleDrag}
-          onDragLeave={handleDrag}
-          onDragOver={handleDrag}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`border-2 border-dashed rounded-lg p-8 text-center ${
-            dragActive ? "border-blue-500 bg-blue-50" : "border-gray-300"
+          className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
+            isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300 hover:border-blue-500"
           }`}
+          onClick={() => fileInputRef.current?.click()}
         >
+          <p className="text-gray-500">
+            Click to upload or drag and drop an image
+          </p>
           <input
+            ref={fileInputRef}
             type="file"
             accept="image/*"
-            onChange={handleChange}
+            onChange={handleFileSelect}
             className="hidden"
-            id="image-upload"
           />
-          <label
-            htmlFor="image-upload"
-            className="flex flex-col items-center cursor-pointer"
-          >
-            <Upload className="h-8 w-8 mb-2 text-gray-400" />
-            <span className="text-sm text-gray-500">
-              Drop an image here, or click to select
-            </span>
-          </label>
         </div>
       )}
     </div>
