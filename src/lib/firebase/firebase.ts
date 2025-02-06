@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, collection, query, where, orderBy } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAnalytics, isSupported } from "firebase/analytics";
 
@@ -23,5 +23,39 @@ const storage = getStorage(app);
 if (typeof window !== 'undefined') {
   isSupported().then(yes => yes && getAnalytics(app)).catch(() => null);
 }
+
+// Create required indexes
+async function createRequiredIndexes() {
+  try {
+    // Posts index for user profile
+    const postsRef = collection(db, "posts");
+    await query(
+      postsRef,
+      where("userId", "==", "dummy"),
+      orderBy("createdAt", "desc")
+    ).get();
+
+    // Notifications index
+    const notificationsRef = collection(db, "notifications");
+    await query(
+      notificationsRef,
+      where("toUserId", "==", "dummy"),
+      orderBy("createdAt", "desc")
+    ).get();
+
+    console.log("Indexes creation initiated");
+  } catch (error: any) {
+    // If error contains a link to create the index, log it
+    if (error?.message?.includes("https://console.firebase.google.com")) {
+      console.log("Please create the following indexes:");
+      console.log(error.message);
+    } else {
+      console.error("Error creating indexes:", error);
+    }
+  }
+}
+
+// Call the function when the app initializes
+createRequiredIndexes();
 
 export { app, auth, db, storage };
