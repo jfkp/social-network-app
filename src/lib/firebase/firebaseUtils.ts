@@ -21,7 +21,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { Post, UserProfile, Comment } from "../types";
+import { Post, UserProfile, Comment, Story } from "../types";
 import { onAuthStateChanged } from "firebase/auth";
 import type { Notification } from "@/lib/types";
 
@@ -249,4 +249,56 @@ export const markAllNotificationsAsRead = async (userId: string) => {
   });
   
   return batch.commit();
+};
+
+export const createStory = async ({ 
+  userId, 
+  userName, 
+  userAvatar, 
+  type, 
+  file 
+}: { 
+  userId: string;
+  userName: string;
+  userAvatar: string;
+  type: 'image' | 'video';
+  file: File;
+}) => {
+  const path = `stories/${userId}/${Date.now()}-${file.name}`;
+  const mediaUrl = await uploadImage(file, path);
+  
+  const story: Omit<Story, 'id'> = {
+    userId,
+    userName,
+    userAvatar,
+    mediaUrl,
+    type,
+    createdAt: Date.now(),
+    expiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+    views: [],
+  };
+
+  return addDoc(collection(db, "stories"), story);
+};
+
+export const getActiveStories = async () => {
+  const now = Date.now();
+  const q = query(
+    collection(db, "stories"),
+    where("expiresAt", ">", now),
+    orderBy("expiresAt", "desc")
+  );
+  
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ 
+    id: doc.id, 
+    ...doc.data() 
+  } as Story));
+};
+
+export const viewStory = async (storyId: string, userId: string) => {
+  const storyRef = doc(db, "stories", storyId);
+  return updateDoc(storyRef, {
+    views: arrayUnion(userId)
+  });
 };
