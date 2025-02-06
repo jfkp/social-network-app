@@ -1,20 +1,14 @@
-import Link from "next/link";
+import FeedPost from "@/components/FeedPost";
+import { getFeedPosts } from "@/lib/firebase/firebaseUtils";
 
-export default function Home() {
+export default async function Home() {
+  const posts = await getFeedPosts();
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-8">
-      <div>
-        <h2 className="text-2xl font-semibold text-center border p-4 font-mono rounded-md">
-          Starter Template
-        </h2>
-      </div>
-      <div>
-        <h1 className="text-6xl font-bold text-center">3, 2, 1... Go!</h1>
-        <h2 className="text-2xl text-center font-light text-gray-500 pt-4">
-          This page will be replaced with your app.
-        </h2>
-      </div>
-      
-    </main>
+    <div className="space-y-4 p-4">
+      {posts.map((post) => (
+        <FeedPost key={post.id} post={post} />
+      ))}
+    </div>
   );
 }
