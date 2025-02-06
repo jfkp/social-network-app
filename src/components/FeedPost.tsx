@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useAuth } from "@/lib/contexts/AuthContext";
 import { Heart, MessageCircle } from "lucide-react";
 import { likePost, unlikePost } from "@/lib/firebase/firebaseUtils";
 import type { Post } from "@/lib/types";

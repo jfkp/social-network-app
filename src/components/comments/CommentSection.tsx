@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useAuth } from "@/lib/contexts/AuthContext";
 import { addComment } from "@/lib/firebase/firebaseUtils";
 import CommentItem from "./CommentItem";
 import type { Comment } from "@/lib/types";

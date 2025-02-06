@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useAuth } from "@/lib/contexts/AuthContext";
 import { followUser, unfollowUser, getUserProfile } from "@/lib/firebase/firebaseUtils";
 import { useRouter } from "next/navigation";
 
