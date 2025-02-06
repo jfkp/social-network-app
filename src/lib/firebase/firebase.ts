@@ -1,6 +1,13 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore, collection, query, where, orderBy } from "firebase/firestore";
+import { 
+  getFirestore, 
+  collection, 
+  query, 
+  where, 
+  orderBy,
+  getDocs 
+} from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAnalytics, isSupported } from "firebase/analytics";
 
@@ -29,19 +36,21 @@ async function createRequiredIndexes() {
   try {
     // Posts index for user profile
     const postsRef = collection(db, "posts");
-    await query(
+    const postsQuery = query(
       postsRef,
       where("userId", "==", "dummy"),
       orderBy("createdAt", "desc")
-    ).get();
+    );
+    await getDocs(postsQuery);
 
     // Notifications index
     const notificationsRef = collection(db, "notifications");
-    await query(
+    const notificationsQuery = query(
       notificationsRef,
       where("toUserId", "==", "dummy"),
       orderBy("createdAt", "desc")
-    ).get();
+    );
+    await getDocs(notificationsQuery);
 
     console.log("Indexes creation initiated");
   } catch (error: any) {
@@ -55,7 +64,9 @@ async function createRequiredIndexes() {
   }
 }
 
-// Call the function when the app initializes
-createRequiredIndexes();
+// Only run in browser environment
+if (typeof window !== 'undefined') {
+  createRequiredIndexes();
+}
 
 export { app, auth, db, storage };
