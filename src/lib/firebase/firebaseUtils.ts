@@ -18,6 +18,7 @@ import {
   where,
   onSnapshot,
   writeBatch,
+  setDoc,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Post, UserProfile, Comment } from "../types";
@@ -31,6 +32,11 @@ export const signInWithGoogle = async () => {
   const provider = new GoogleAuthProvider();
   try {
     const result = await signInWithPopup(auth, provider);
+    // Check if user profile exists, if not create one
+    const profile = await getUserProfile(result.user.uid);
+    if (!profile) {
+      await createUserProfile(result.user);
+    }
     return result.user;
   } catch (error) {
     console.error("Error signing in with Google", error);
@@ -98,8 +104,19 @@ export const unlikePost = async (postId: string, userId: string) => {
 };
 
 // User Profiles
-export const createUserProfile = async (profile: UserProfile) => {
-  return await setDoc(doc(db, "users", profile.uid), profile);
+export const createUserProfile = async (user: User) => {
+  const userRef = doc(db, "users", user.uid);
+  const profile: UserProfile = {
+    uid: user.uid,
+    displayName: user.displayName || "Anonymous",
+    photoURL: user.photoURL || "https://placehold.co/40",
+    followers: [],
+    following: [],
+    createdAt: Date.now(),
+  };
+
+  await setDoc(userRef, profile);
+  return profile;
 };
 
 export const getUserProfile = async (userId: string) => {

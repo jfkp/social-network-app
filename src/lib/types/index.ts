@@ -28,6 +28,7 @@ export interface UserProfile {
   website?: string;
   followers: string[];
   following: string[];
+  createdAt: number;
 }
 
 export type NotificationType = 'like' | 'comment' | 'follow';

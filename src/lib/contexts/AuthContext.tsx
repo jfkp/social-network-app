@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { User } from "firebase/auth";
 import { auth } from "@/lib/firebase/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { signInWithGoogle, logoutUser } from "@/lib/firebase/firebaseUtils";
+import { signInWithGoogle, logoutUser, getUserProfile, createUserProfile } from "@/lib/firebase/firebaseUtils";
 
 interface AuthContextType {
   user: User | null;
@@ -28,9 +28,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // User is signed in
+        // Check if user profile exists
+        const profile = await getUserProfile(user.uid);
+        if (!profile) {
+          await createUserProfile(user);
+        }
+
         const idToken = await user.getIdToken();
-        // Store the token in a cookie
         await fetch('/api/auth/session', {
           method: 'POST',
           headers: {
@@ -38,7 +42,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           },
         });
       } else {
-        // User is signed out
         await fetch('/api/auth/session', { method: 'DELETE' });
       }
       setUser(user);
