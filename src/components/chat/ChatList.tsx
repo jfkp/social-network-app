@@ -4,6 +4,7 @@ import { useChat } from '@/lib/contexts/ChatContext';
 import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import NewChatButton from './NewChatButton';
 
 export default function ChatList() {
   const { chats, setActiveChat, activeChat } = useChat();
@@ -12,7 +13,8 @@ export default function ChatList() {
   return (
     <div className="w-full border-r">
       <div className="p-4 border-b">
-        <h2 className="text-lg font-semibold">Messages</h2>
+        <h2 className="text-lg font-semibold mb-2">Messages</h2>
+        <NewChatButton />
       </div>
       <div className="overflow-y-auto h-[calc(100vh-10rem)]">
         {chats.map((chat) => {
