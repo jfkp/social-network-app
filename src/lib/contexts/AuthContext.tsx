@@ -13,7 +13,8 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({
+// Export the context so it can be imported if needed
+export const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   signInWithGoogle: async () => null,
@@ -47,11 +48,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
+  const value = {
+    user,
+    loading,
+    signInWithGoogle,
+    signOut: logoutUser,
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut: logoutUser }}>
+    <AuthContext.Provider value={value}>
       {!loading && children}
     </AuthContext.Provider>
   );
 }
 
-export const useAuth = () => useContext(AuthContext);
+// Export the hook
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}

@@ -1,8 +1,10 @@
 "use client";
 
-import { signInWithGoogle } from "@/lib/firebase/firebaseUtils";
+import { useAuth } from "@/lib/contexts/AuthContext";
 
 export default function SignIn() {
+  const { signInWithGoogle } = useAuth();
+
   const handleSignIn = async () => {
     try {
       await signInWithGoogle();
