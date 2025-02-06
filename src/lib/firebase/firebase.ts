@@ -1,10 +1,8 @@
-import { initializeApp, getApps, getApp, setLogLevel } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-
-// Disable Firebase logging
-setLogLevel('error');
+import { getAnalytics, isSupported } from "firebase/analytics";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -18,8 +16,12 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
-auth.settings = { ...auth.settings, appVerificationDisabledForTesting: true };
 const db = getFirestore(app);
 const storage = getStorage(app);
+
+// Initialize Analytics conditionally to handle heartbeat
+if (typeof window !== 'undefined') {
+  isSupported().then(yes => yes && getAnalytics(app)).catch(() => null);
+}
 
 export { app, auth, db, storage };
