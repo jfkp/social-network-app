@@ -1,4 +1,16 @@
-import { useContext } from "react";
-import { AuthContext } from "../contexts/AuthContext";
+"use client";
 
-export const useAuth = () => useContext(AuthContext);
+import { useContext } from "react";
+import { useAuth as useFirebaseAuth } from "@/lib/contexts/AuthContext";
+import { signInWithGoogle, logoutUser } from "@/lib/firebase/firebaseUtils";
+
+export function useAuth() {
+  const { user, loading } = useFirebaseAuth();
+
+  return {
+    user,
+    loading,
+    signInWithGoogle,
+    signOut: logoutUser,
+  };
+}
