@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, User, PlusSquare, Search } from "lucide-react";
+import { Home, User, PlusSquare, Search, MessageSquare } from "lucide-react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 
 export default function Navigation() {
@@ -16,6 +16,7 @@ export default function Navigation() {
     { href: "/search", icon: Search, label: "Search" },
     { href: "/create", icon: PlusSquare, label: "Create" },
     { href: `/profile/${user.uid}`, icon: User, label: "Profile" },
+    { href: "/messages", icon: MessageSquare, label: "Messages" },
   ];
 
   return (

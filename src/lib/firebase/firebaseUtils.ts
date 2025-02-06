@@ -21,7 +21,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { Post, UserProfile, Comment, Story } from "../types";
+import { Post, UserProfile, Comment, Story, Chat, Message } from "../types";
 import { onAuthStateChanged } from "firebase/auth";
 import type { Notification } from "@/lib/types";
 
@@ -300,5 +300,59 @@ export const viewStory = async (storyId: string, userId: string) => {
   const storyRef = doc(db, "stories", storyId);
   return updateDoc(storyRef, {
     views: arrayUnion(userId)
+  });
+};
+
+export const createChat = async (participants: string[]) => {
+  const chat: Omit<Chat, 'id'> = {
+    participants,
+    updatedAt: Date.now(),
+  };
+  
+  return addDoc(collection(db, "chats"), chat);
+};
+
+export const onChatsChange = (userId: string, callback: (chats: Chat[]) => void) => {
+  const q = query(
+    collection(db, "chats"),
+    where("participants", "array-contains", userId),
+    orderBy("updatedAt", "desc")
+  );
+
+  return onSnapshot(q, (snapshot) => {
+    const chats = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as Chat));
+    callback(chats);
+  });
+};
+
+export const sendMessage = async (message: Omit<Message, 'id'>) => {
+  const messageRef = await addDoc(collection(db, "messages"), message);
+  
+  // Update chat's lastMessage and updatedAt
+  const chatRef = doc(db, "chats", message.chatId);
+  await updateDoc(chatRef, {
+    lastMessage: { ...message, id: messageRef.id },
+    updatedAt: message.createdAt
+  });
+
+  return messageRef;
+};
+
+export const onChatMessages = (chatId: string, callback: (messages: Message[]) => void) => {
+  const q = query(
+    collection(db, "messages"),
+    where("chatId", "==", chatId),
+    orderBy("createdAt", "asc")
+  );
+
+  return onSnapshot(q, (snapshot) => {
+    const messages = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as Message));
+    callback(messages);
   });
 };
