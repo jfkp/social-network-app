@@ -1,8 +1,8 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { useAuth } from "@/lib/hooks/useAuth";
-import { onNotificationsChange } from "@/lib/firebase/firebaseUtils";
+import { useAuth } from "@/lib/contexts/AuthContext";
+import { onNotificationsChange, markNotificationAsRead, markAllNotificationsAsRead } from "@/lib/firebase/firebaseUtils";
 import type { Notification } from "@/lib/types";
 
 interface NotificationContextType {
